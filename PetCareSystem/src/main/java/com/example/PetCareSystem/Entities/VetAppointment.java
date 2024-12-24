@@ -1,7 +1,5 @@
-package com.example.PetCareSystem.Entites;
+package com.example.PetCareSystem.Entities;
 
-import com.example.PetCareSystem.Entites.Pet;
-import com.example.PetCareSystem.Entites.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -11,7 +9,7 @@ import java.time.LocalDate;
 public class VetAppointment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
     @ManyToOne
