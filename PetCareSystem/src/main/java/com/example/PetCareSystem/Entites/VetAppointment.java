@@ -1,6 +1,9 @@
 package com.example.PetCareSystem.Entites;
 
+import com.example.PetCareSystem.Entites.Pet;
+import com.example.PetCareSystem.Entites.User;
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 
 @Entity
@@ -11,57 +14,20 @@ public class VetAppointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "vet_id", nullable = false)
-    private int vetId; // Veterinerin ID'si
+    @ManyToOne
+    @JoinColumn(name = "vet_id", nullable = false)
+    private User vet;
 
-    @Column(name = "user_id", nullable = false)
-    private int userId; // Kullanıcının ID'si
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(name = "pet_id", nullable = false)
-    private int petId; // Hayvanın ID'si
+    @ManyToOne
+    @JoinColumn(name = "pet_id", nullable = false)
+    private Pet pet; // Pet referansı eklendi
 
     @Column(name = "appointment_date", nullable = false)
-    private LocalDate appointmentDate; // Randevu tarihi
+    private LocalDate appointmentDate;
 
     // Getters and Setters
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getVetId() {
-        return vetId;
-    }
-
-    public void setVetId(int vetId) {
-        this.vetId = vetId;
-    }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public int getPetId() {
-        return petId;
-    }
-
-    public void setPetId(int petId) {
-        this.petId = petId;
-    }
-
-    public LocalDate getAppointmentDate() {
-        return appointmentDate;
-    }
-
-    public void setAppointmentDate(LocalDate appointmentDate) {
-        this.appointmentDate = appointmentDate;
-    }
 }
-
