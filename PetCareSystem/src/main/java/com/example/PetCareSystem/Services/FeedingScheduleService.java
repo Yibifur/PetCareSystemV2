@@ -1,43 +1,39 @@
 package com.example.PetCareSystem.Services;
 
+import com.example.PetCareSystem.DTO.FeedingScheduleDTO;
 import com.example.PetCareSystem.Entities.FeedingSchedule;
+import com.example.PetCareSystem.Entities.Pet;
 import com.example.PetCareSystem.Repositories.FeedingScheduleRepository;
+import com.example.PetCareSystem.Repositories.PetRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class FeedingScheduleService {
-private final FeedingScheduleRepository feedingScheduleRepository;
 
-    public FeedingScheduleService(FeedingScheduleRepository feedingScheduleRepository) {
-        this.feedingScheduleRepository = feedingScheduleRepository;
-    }
-    public List<FeedingSchedule> getAllFeedingSchedule(){
-        return feedingScheduleRepository.findAll();
-    }
+    @Autowired
+    private FeedingScheduleRepository feedingScheduleRepository;
 
-    public Optional<FeedingSchedule> getFeedingScheduleById(int id){
-        return feedingScheduleRepository.findById(id);
-    }
+    @Autowired
+    private PetRepository petRepository;
 
-    public FeedingSchedule createFeedingSchedule(FeedingSchedule feedingSchedule){
-        return feedingScheduleRepository.save(feedingSchedule);
-    }
-    public FeedingSchedule updateFeedinggSchedule(int id, FeedingSchedule newFeedingSchedule) {
-        Optional<FeedingSchedule> feedingSchedule = feedingScheduleRepository.findById(id);
-        if (feedingSchedule.isPresent()) {
-            FeedingSchedule foundFeedingSchedule = feedingSchedule.get();
-            foundFeedingSchedule.setBreakfastTime(newFeedingSchedule.getBreakfastTime());
-            foundFeedingSchedule.setLunchTime(newFeedingSchedule.getLunchTime());
-            foundFeedingSchedule.setDinnerTime(newFeedingSchedule.getDinnerTime());
-            return feedingScheduleRepository.save(foundFeedingSchedule);
-        }
-        return null;
+    public FeedingScheduleDTO addFeedingSchedule(int petId, FeedingSchedule feedingSchedule) {
+        Pet pet = petRepository.findById(petId).orElseThrow(() -> new RuntimeException("Pet not found"));
+        feedingSchedule.getPets().add(pet);
+        FeedingSchedule savedSchedule = feedingScheduleRepository.save(feedingSchedule);
+
+        return new FeedingScheduleDTO(savedSchedule.getId(), savedSchedule.getBreakfastTime(), savedSchedule.getLunchTime(), savedSchedule.getDinnerTime());
     }
 
-    public void deleteFeedingSchedule(int id){
-        feedingScheduleRepository.deleteById(id);
+    public FeedingScheduleDTO getFeedingScheduleByPetId(int petId) {
+        FeedingSchedule feedingSchedule = feedingScheduleRepository.findByPetsId(petId)
+                .orElseThrow(() -> new RuntimeException("Feeding schedule not found for petId: " + petId));
+
+        return new FeedingScheduleDTO(
+                feedingSchedule.getId(),
+                feedingSchedule.getBreakfastTime(),
+                feedingSchedule.getLunchTime(),
+                feedingSchedule.getDinnerTime()
+        );
     }
 }

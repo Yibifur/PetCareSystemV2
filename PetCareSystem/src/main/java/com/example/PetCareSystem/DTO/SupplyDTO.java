@@ -1,27 +1,17 @@
-package com.example.PetCareSystem.Entities;
+package com.example.PetCareSystem.DTO;
 
-import jakarta.persistence.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
-@Entity
-@Table(name = "tb_supply")
-public class Supply {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+public class SupplyDTO {
     private int id;
-
     private String supplyName;
-
     private String status;
-
     private int quantity;
 
-    @ManyToMany(fetch =FetchType.EAGER,cascade = CascadeType.ALL)
-    @JoinTable(name = "supply_pets",joinColumns = @JoinColumn(name="supply_id",referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "pet_id",referencedColumnName = "id"))
-    private List<Pet> pets=new ArrayList<>();
+    public SupplyDTO(int id, String supplyName, String status, int quantity) {
+        this.id = id;
+        this.supplyName = supplyName;
+        this.status = status;
+        this.quantity = quantity;
+    }
 
     // Getters and Setters
 
@@ -55,13 +45,5 @@ public class Supply {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
-    }
-
-    public List<Pet> getPets() {
-        return pets;
-    }
-
-    public void setPets(List<Pet> pets) {
-        this.pets = pets;
     }
 }

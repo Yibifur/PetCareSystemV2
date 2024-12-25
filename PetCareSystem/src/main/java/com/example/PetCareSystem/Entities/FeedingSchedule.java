@@ -22,6 +22,18 @@ public class FeedingSchedule {
             inverseJoinColumns = @JoinColumn(name = "pet_id",referencedColumnName = "id"))
     private List<Pet> pets=new ArrayList<>();
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setPets(List<Pet> pets) {
+        this.pets = pets;
+    }
+
     public Date getBreakfastTime() {
         return breakfastTime;
     }

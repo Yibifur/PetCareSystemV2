@@ -23,4 +23,36 @@ public class Vaccination {
     private List<Pet> pets=new ArrayList<>();
 
     // Getters and Setters
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getVaccinationType() {
+        return vaccinationType;
+    }
+
+    public void setVaccinationType(String vaccinationType) {
+        this.vaccinationType = vaccinationType;
+    }
+
+    public Date getVaccinationDate() {
+        return vaccinationDate;
+    }
+
+    public void setVaccinationDate(Date vaccinationDate) {
+        this.vaccinationDate = vaccinationDate;
+    }
+
+    public List<Pet> getPets() {
+        return pets;
+    }
+
+    public void setPets(List<Pet> pets) {
+        this.pets = pets;
+    }
 }
