@@ -58,6 +58,7 @@ public class PetService {
                 null, // List<VetAppointmentDTO>
                 null, // List<SupplyDTO>
                 ownerDTO // Owner bilgisi
+
         );
     }
 
