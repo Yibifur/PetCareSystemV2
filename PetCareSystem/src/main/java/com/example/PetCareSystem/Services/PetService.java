@@ -58,6 +58,7 @@ public class PetService {
                 null, // List<VetAppointmentDTO>
                 null, // List<SupplyDTO>
                 ownerDTO // Owner bilgisi
+
         );
     }
 
@@ -68,6 +69,31 @@ public class PetService {
         // Owner bilgisi için UserDTO oluştur
         User owner = pet.getOwner();
         UserDTO ownerDTO = new UserDTO(owner.getId(), owner.getUsername(), owner.getEmail(), owner.getRole(), null);
+
+        // FeedingScheduleDTO oluştur
+        List<FeedingScheduleDTO> feedingSchedules = feedingScheduleRepository.findByPetsId(petId).stream()
+                .map(schedule -> new FeedingScheduleDTO(schedule.getId(), schedule.getBreakfastTime(), schedule.getLunchTime(), schedule.getDinnerTime()))
+                .collect(Collectors.toList());
+
+        // MedicationDTO oluştur
+        List<MedicationDTO> medications = medicationRepository.findAllByPetsId(petId).stream()
+                .map(medication -> new MedicationDTO(medication.getId(), medication.getMedicationName(), medication.getStartDate(), medication.getEndDate(), medication.getDosage()))
+                .collect(Collectors.toList());
+
+        // VaccinationDTO oluştur
+        List<VaccinationDTO> vaccinations = vaccinationRepository.findAllByPetsId(petId).stream()
+                .map(vaccination -> new VaccinationDTO(vaccination.getId(), vaccination.getVaccinationType(), vaccination.getVaccinationDate()))
+                .collect(Collectors.toList());
+
+        // VetAppointmentDTO oluştur
+        List<VetAppointmentDTO> vetAppointments = vetAppointmentRepository.findAllByPetId(petId).stream()
+                .map(appointment -> new VetAppointmentDTO(appointment.getId(), appointment.getVet().getUsername(), appointment.getAppointmentDate()))
+                .collect(Collectors.toList());
+
+        // SupplyDTO oluştur
+        List<SupplyDTO> supplies = supplyRepository.findAllByPetsId(petId).stream()
+                .map(supply -> new SupplyDTO(supply.getId(), supply.getSupplyName(), supply.getStatus(), supply.getQuantity()))
+                .collect(Collectors.toList());
 
         // FeedingScheduleDTO oluştur
         List<FeedingScheduleDTO> feedingSchedules = feedingScheduleRepository.findByPetsId(petId).stream()
