@@ -1,30 +1,29 @@
 package com.example.PetCareSystem.Entities;
 
+import com.example.PetCareSystem.Enum.UserRole;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-    @Table(name = "tb_user")
-    public class User {
-        @Id
-        @GeneratedValue(strategy = GenerationType.AUTO)
-        private int id;
+@Table(name = "tb_user")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int id;
 
-        private String username;
+    private String username;
 
-        private String email;
+    private String email;
 
-        private String passwordHash;
+    private String passwordHash;
 
-    @ManyToMany(fetch =FetchType.EAGER,cascade = CascadeType.ALL)
-    @JoinTable(name = "user_roles",joinColumns = @JoinColumn(name="user_id",referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id",referencedColumnName = "Id"))
-    private List<Role> roles=new ArrayList<>();
+    @Enumerated(EnumType.STRING) // Enum değerini string olarak saklar
+    private UserRole role; // Kullanıcı rolü
 
-        @OneToMany(mappedBy = "owner")
-        private List<Pet> pets;
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Pet> pets = new ArrayList<>();
 
     public int getId() {
         return id;
@@ -34,10 +33,9 @@ import java.util.List;
         this.id = id;
     }
 
-    // Getters and Setters
-        public String getUsername() {
-            return username;
-        }
+    public String getUsername() {
+        return username;
+    }
 
     public void setUsername(String username) {
         this.username = username;
@@ -59,12 +57,12 @@ import java.util.List;
         this.passwordHash = passwordHash;
     }
 
-    public List<Role> getRoles() {
-        return roles;
+    public UserRole getRole() {
+        return role;
     }
 
-    public void setRoles(List<Role> roles) {
-        this.roles = roles;
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     public List<Pet> getPets() {
@@ -75,4 +73,3 @@ import java.util.List;
         this.pets = pets;
     }
 }
-
