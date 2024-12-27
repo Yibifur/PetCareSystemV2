@@ -17,9 +17,7 @@ public class VetAppointment {
     @JoinColumn(name = "vet_id", nullable = false)
     private User vet;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+
 
     @ManyToOne
     @JoinColumn(name = "pet_id", nullable = false)
@@ -44,14 +42,6 @@ public class VetAppointment {
 
     public void setVet(User vet) {
         this.vet = vet;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 
     public Pet getPet() {

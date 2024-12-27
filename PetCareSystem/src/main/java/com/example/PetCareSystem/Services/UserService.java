@@ -16,7 +16,29 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+    public List<UserDTO> getAllUsers() {
+        // Tüm kullanıcıları al ve DTO'ya dönüştür
+        return userRepository.findAll().stream()
+                .map(user -> {
+                    List<PetDTO> pets = user.getPets().stream()
+                            .map(pet -> new PetDTO(
+                                    pet.getId(),
+                                    pet.getName(),
+                                    pet.getType(),
+                                    pet.getAge(),
+                                    null, // FeedingScheduleDTO
+                                    null, // List<MedicationDTO>
+                                    null, // List<VaccinationDTO>
+                                    null, // List<VetAppointmentDTO>
+                                    null, // List<SupplyDTO>
+                                    null // Owner bilgisi
+                            ))
+                            .collect(Collectors.toList());
 
+                    return new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), pets);
+                })
+                .collect(Collectors.toList());
+    }
     public User registerUser(User user, String roleName) {
         // Role'ü enum'a çevir ve kullanıcıya ata
         try {
