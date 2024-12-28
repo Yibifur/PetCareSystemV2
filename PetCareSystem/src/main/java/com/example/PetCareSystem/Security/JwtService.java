@@ -1,5 +1,6 @@
 package com.example.PetCareSystem.Security;
 
+import com.example.PetCareSystem.Entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -17,42 +18,58 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY="65df662f683adaadac9da410ed99c885ab709835d9311774cd2fd82cca5bafdc";
+    private static final String SECRET_KEY = "65df662f683adaadac9da410ed99c885ab709835d9311774cd2fd82cca5bafdc";
 
-    private Key getSignInKey(){
-        byte[] keyBytes= Decoders.BASE64.decode(SECRET_KEY);
+    private Key getSignInKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }
-    public String extractUsername(String token){
 
-        return extractClaim(token,Claims::getSubject);
+    // Token'dan email bilgisini çıkartır
+    public String extractEmail(String token) {
+        return extractClaim(token, Claims::getSubject);
     }
-    public String generateToken(UserDetails userDetails){
-        return generateToken(new HashMap<>(),userDetails);
+
+    // Token oluşturma (email'i subject olarak ekler)
+    public String generateToken(User userDetails) {
+        return generateToken(new HashMap<>(), userDetails);
     }
-    public boolean isValidToken(String token,UserDetails userDetails){
-        final String username=extractUsername(token);
-        return (username.equals(userDetails.getUsername()))&&!isTokenExpired(token);
+
+    public String generateToken(Map<String, Object> extraClaims, User userDetails) {
+        return Jwts.builder()
+                .setClaims(extraClaims)
+                .setSubject(userDetails.getEmail()) // Email'i subject olarak kullanıyoruz
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24)) // 24 dakika geçerli
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
     }
-    public boolean isTokenExpired(String token){
+
+    // Token doğrulama (email ile kontrol)
+    public boolean isValidToken(String token, UserDetails userDetails) {
+        final String email = extractEmail(token);
+        return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    }
+
+    private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
-    private Date extractExpiration(String token){
-        return extractClaim(token,Claims::getExpiration);
-    }
-    public String generateToken( Map<String,Object> extraClaims,
-    UserDetails userDetails){
-       return Jwts.builder().setClaims(extraClaims).setSubject(userDetails.getUsername()).
-               setIssuedAt(new Date(System.currentTimeMillis())).setExpiration(new Date(System.currentTimeMillis()+1000*60*24)).
-               signWith(getSignInKey(), SignatureAlgorithm.HS256).compact();
-    }
-    private Claims extractAllClaims(String token){
-        return Jwts.parser().
-                setSigningKey(getSignInKey()).build().parseClaimsJws(token).getBody();
 
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
     }
-    public<T> T extractClaim(String token, Function<Claims,T> claimsResolver){
-        final Claims claims=extractAllClaims(token);
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(getSignInKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
 }
+

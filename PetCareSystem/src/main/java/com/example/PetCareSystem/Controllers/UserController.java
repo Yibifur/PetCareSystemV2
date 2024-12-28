@@ -16,12 +16,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user, @RequestParam String role) {
-        User savedUser = userService.registerUser(user, role);
-        return ResponseEntity.ok(savedUser);
-    }
-
     @GetMapping("/{userId}/pets")
     public ResponseEntity<UserDTO> getUserPets(@PathVariable int userId) {
         UserDTO userDTO = userService.getUserById(userId);

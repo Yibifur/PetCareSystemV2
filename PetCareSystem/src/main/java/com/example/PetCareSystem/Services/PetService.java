@@ -4,6 +4,7 @@ import com.example.PetCareSystem.DTO.*;
 import com.example.PetCareSystem.Entities.*;
 import com.example.PetCareSystem.Repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,7 +33,6 @@ public class PetService {
 
     @Autowired
     private SupplyRepository supplyRepository;
-
     public PetDTO addPet(int userId, Pet pet) {
         // Kullanıcı kontrolü
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
