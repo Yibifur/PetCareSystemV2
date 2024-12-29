@@ -33,6 +33,61 @@ public class PetService {
 
     @Autowired
     private SupplyRepository supplyRepository;
+
+    @PreAuthorize("isAuthenticated()")
+    public List<PetDTO> getAllPets() {
+        List<Pet> pets = petRepository.findAll();
+
+        return pets.stream()
+                .map(pet -> {
+                    // Owner bilgisi için UserDTO oluştur
+                    User owner = pet.getOwner();
+                    UserDTO ownerDTO = owner != null ?
+                            new UserDTO(owner.getId(), owner.getUsername(), owner.getEmail(), owner.getRole(), null)
+                            : null;
+
+                    // FeedingScheduleDTO oluştur
+                    List<FeedingScheduleDTO> feedingSchedules = feedingScheduleRepository.findByPetsId(pet.getId()).stream()
+                            .map(schedule -> new FeedingScheduleDTO(schedule.getId(), schedule.getBreakfastTime(), schedule.getLunchTime(), schedule.getDinnerTime()))
+                            .collect(Collectors.toList());
+
+                    // MedicationDTO oluştur
+                    List<MedicationDTO> medications = medicationRepository.findAllByPetsId(pet.getId()).stream()
+                            .map(medication -> new MedicationDTO(medication.getId(), medication.getMedicationName(), medication.getStartDate(), medication.getEndDate(), medication.getDosage()))
+                            .collect(Collectors.toList());
+
+                    // VaccinationDTO oluştur
+                    List<VaccinationDTO> vaccinations = vaccinationRepository.findAllByPetsId(pet.getId()).stream()
+                            .map(vaccination -> new VaccinationDTO(vaccination.getId(), vaccination.getVaccinationType(), vaccination.getVaccinationDate()))
+                            .collect(Collectors.toList());
+
+                    // VetAppointmentDTO oluştur
+                    List<VetAppointmentDTO> vetAppointments = vetAppointmentRepository.findAllByPetId(pet.getId()).stream()
+                            .map(appointment -> new VetAppointmentDTO(appointment.getId(), appointment.getVet().getUsername(), appointment.getAppointmentDate()))
+                            .collect(Collectors.toList());
+
+                    // SupplyDTO oluştur
+                    List<SupplyDTO> supplies = supplyRepository.findAllByPetsId(pet.getId()).stream()
+                            .map(supply -> new SupplyDTO(supply.getId(), supply.getSupplyName(), supply.getStatus(), supply.getQuantity()))
+                            .collect(Collectors.toList());
+
+                    // PetDTO oluştur ve döndür
+                    return new PetDTO(
+                            pet.getId(),
+                            pet.getName(),
+                            pet.getType(),
+                            pet.getAge(),
+                            feedingSchedules.isEmpty() ? null : feedingSchedules.get(0), // İlk FeedingSchedule
+                            medications,
+                            vaccinations,
+                            vetAppointments,
+                            supplies,
+                            ownerDTO // Owner bilgisi
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
     public PetDTO addPet(int userId, Pet pet) {
         // Kullanıcı kontrolü
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));

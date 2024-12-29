@@ -26,13 +26,18 @@ public class JwtService {
     }
 
     // Token'dan email bilgisini çıkartır
-    public String extractEmail(String token) {
-        return extractClaim(token, Claims::getSubject);
+    public String extractUsername(String token) {
+        String usernameClaim = extractAllClaims(token).get("username", String.class); // Username claim'ini çıkar
+        return usernameClaim;
     }
+
 
     // Token oluşturma (email'i subject olarak ekler)
     public String generateToken(User userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", userDetails.getUsername()); // Username claim ekleniyor
+        return generateToken(claims, userDetails);
     }
 
     public String generateToken(Map<String, Object> extraClaims, User userDetails) {
@@ -47,8 +52,8 @@ public class JwtService {
 
     // Token doğrulama (email ile kontrol)
     public boolean isValidToken(String token, UserDetails userDetails) {
-        final String email = extractEmail(token);
-        return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        final String username = extractUsername(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {

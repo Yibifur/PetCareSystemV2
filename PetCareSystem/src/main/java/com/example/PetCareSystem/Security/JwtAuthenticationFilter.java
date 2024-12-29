@@ -1,5 +1,6 @@
 package com.example.PetCareSystem.Security;
 
+import com.example.PetCareSystem.Services.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,11 +20,11 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService customUserDetailsService) {
         this.jwtService = jwtService;
-        this.userDetailsService = userDetailsService;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Override
@@ -34,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
-        final String userEmail;
+        final String username;
 
         // Authorization header kontrolü
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -44,13 +45,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Token'dan email çıkarma
         jwt = authHeader.substring(7);
-        userEmail = jwtService.extractEmail(jwt); // extractUsername yerine extractEmail kullanıyoruz
+        username = jwtService.extractUsername(jwt); // extractUsername yerine extractEmail kullanıyoruz
 
         // Kullanıcı doğrulama işlemleri
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             System.out.println("Authorization Header: " + request.getHeader("Authorization"));
-            System.out.println("Extracted email from token: " + userEmail);
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            System.out.println("Extracted email from token: " + username);
+            UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(username);
             System.out.println("UserDetails loaded: " + userDetails.getUsername());// Email üzerinden kullanıcıyı yükle
             if (jwtService.isValidToken(jwt, userDetails)) { // Token geçerliliğini kontrol et
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
