@@ -53,6 +53,7 @@ public class UserController {
         return ResponseEntity.ok(updatePetDTO);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{userId}/pets/add")
     public ResponseEntity<PetDTO> addPet(@PathVariable int userId, @RequestBody Pet pet,@AuthenticationPrincipal CustomPrincipal principal) {
         if (userId!=(principal.getUserId())) {
