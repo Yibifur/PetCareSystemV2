@@ -5,10 +5,7 @@ import com.example.PetCareSystem.auth.AuthenticationRequest;
 import com.example.PetCareSystem.auth.AuthenticationResponse;
 import com.example.PetCareSystem.auth.RegisterRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth/users")
@@ -28,5 +25,17 @@ public class AuthController {
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
         return ResponseEntity.ok(authenticationService.authenticate(request));
     }
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
+        // Authorization header'dan token'ı çıkar
+        String token = authHeader.substring(7); // "Bearer " kısmını çıkar
+
+        // Logout işlemini gerçekleştir
+        authenticationService.logout(token);
+
+        // Yanıt döndür
+        return ResponseEntity.ok("Logout successful");
+    }
+
 
 }

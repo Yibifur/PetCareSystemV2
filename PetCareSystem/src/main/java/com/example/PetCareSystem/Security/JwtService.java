@@ -36,7 +36,8 @@ public class JwtService {
     public String generateToken(User userDetails) {
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", userDetails.getUsername()); // Username claim ekleniyor
+        claims.put("username", userDetails.getUsername());
+        claims.put("userID",userDetails.getId());// Username claim ekleniyor
         return generateToken(claims, userDetails);
     }
 
@@ -45,7 +46,7 @@ public class JwtService {
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getEmail()) // Email'i subject olarak kullanıyoruz
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24)) // 24 dakika geçerli
+                .setExpiration(new Date(System.currentTimeMillis() + (SecurityConstants.SESSIONANDJWT_LIFETIME)*1000)) // 15 dakika geçerli
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -75,6 +76,12 @@ public class JwtService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public int extractUserId(String token) {
+        // Token içerisindeki "userID" claim'ini çıkar
+        Claims claims = extractAllClaims(token);
+        return claims.get("userID", Integer.class); // "userID" claim'ini al ve Integer olarak döndür
     }
 }
 

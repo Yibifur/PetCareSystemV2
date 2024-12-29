@@ -1,6 +1,7 @@
 package com.example.PetCareSystem.Security;
 
 import com.example.PetCareSystem.Services.CustomUserDetailsService;
+import com.example.PetCareSystem.Services.RedisService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,10 +22,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final CustomUserDetailsService customUserDetailsService;
+    private final RedisService redisService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService customUserDetailsService) {
+    public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService customUserDetailsService, RedisService redisService) {
         this.jwtService = jwtService;
         this.customUserDetailsService = customUserDetailsService;
+        this.redisService = redisService;
     }
 
     @Override
@@ -46,7 +49,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Token'dan email çıkarma
         jwt = authHeader.substring(7);
         username = jwtService.extractUsername(jwt); // extractUsername yerine extractEmail kullanıyoruz
-
+        String userID=String.valueOf(jwtService.extractUserId(jwt));
+        if (!redisService.isSessionValid(userID)) {
+            System.out.println("JWT token is not valid in Redis session list: " + jwt);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
         // Kullanıcı doğrulama işlemleri
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             System.out.println("Authorization Header: " + request.getHeader("Authorization"));
