@@ -1,6 +1,7 @@
 package com.example.PetCareSystem.Controllers;
 
 import com.example.PetCareSystem.DTO.PetDTO;
+import com.example.PetCareSystem.DTO.UpdateDTOs.UpdatePetDTO;
 import com.example.PetCareSystem.Entities.Pet;
 import com.example.PetCareSystem.Services.PetService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +18,12 @@ public class PetController {
     @Autowired
     private PetService petService;
 
-    @PostMapping("/add")
+    /*@PostMapping("/add")
    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PetDTO> addPet(@RequestParam int userId, @RequestBody Pet pet) {
         PetDTO savedPet = petService.addPet(userId, pet);
         return ResponseEntity.ok(savedPet);
-    }
+    }*/
 
     @GetMapping("/{petId}")
     @PreAuthorize("isAuthenticated()")
@@ -37,10 +38,11 @@ public class PetController {
         return ResponseEntity.ok(pets);
     }
 
-     @DeleteMapping("/{petId}")
+     @DeleteMapping("/{petId}/delete")
      @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> deletePet(@PathVariable int petId) {
         petService.deletePet(petId);
         return ResponseEntity.ok("Pet deleted successfully");
     }
+
 }

@@ -1,5 +1,6 @@
 package com.example.PetCareSystem.Security;
 
+import com.example.PetCareSystem.Entities.CustomPrincipal;
 import com.example.PetCareSystem.Services.CustomUserDetailsService;
 import com.example.PetCareSystem.Services.RedisService;
 import jakarta.servlet.FilterChain;
@@ -46,24 +47,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Token'dan email çıkarma
+        // Token'dan bilgileri çıkar
         jwt = authHeader.substring(7);
-        username = jwtService.extractUsername(jwt); // extractUsername yerine extractEmail kullanıyoruz
-        String userID=String.valueOf(jwtService.extractUserId(jwt));
-        if (!redisService.isSessionValid(userID)) {
+        username = jwtService.extractUsername(jwt); // Token'dan username çıkar
+        Integer userID = jwtService.extractUserId(jwt); // Token'dan userID çıkar
+
+        // Redis'te oturum geçerliliğini kontrol et
+        if (!redisService.isSessionValid(String.valueOf(userID))) {
             System.out.println("JWT token is not valid in Redis session list: " + jwt);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
+
         // Kullanıcı doğrulama işlemleri
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            System.out.println("Authorization Header: " + request.getHeader("Authorization"));
-            System.out.println("Extracted email from token: " + username);
             UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(username);
-            System.out.println("UserDetails loaded: " + userDetails.getUsername());// Email üzerinden kullanıcıyı yükle
             if (jwtService.isValidToken(jwt, userDetails)) { // Token geçerliliğini kontrol et
+                // Custom Principal oluştur
+                CustomPrincipal principal = new CustomPrincipal(userID, username);
+
+                // Authentication nesnesi oluştur ve Context'e ekle
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        principal, // Custom Principal
                         null,
                         userDetails.getAuthorities()
                 );
@@ -72,10 +77,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                System.out.println("Authorities: " + SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+                System.out.println("User authenticated: " + username + " with ID: " + userID);
             }
         }
         filterChain.doFilter(request, response);
     }
 }
+
 

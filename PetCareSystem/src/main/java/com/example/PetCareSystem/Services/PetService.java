@@ -1,8 +1,10 @@
 package com.example.PetCareSystem.Services;
 
 import com.example.PetCareSystem.DTO.*;
+import com.example.PetCareSystem.DTO.UpdateDTOs.*;
 import com.example.PetCareSystem.Entities.*;
 import com.example.PetCareSystem.Repositories.*;
+import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -170,5 +172,61 @@ public class PetService {
     public void deletePet(int petId) {
         // Pet'i sil
         petRepository.deleteById(petId);
+    }
+    public UpdatePetDTO updatePet(int petId, UpdatePetDTO petDto) {
+        Pet existingPet = petRepository.findById(petId).orElseThrow(() -> new RuntimeException("Pet not found"));
+
+        // Update pet details
+        existingPet.setName(petDto.getName());
+        existingPet.setType(petDto.getType());
+        existingPet.setAge(petDto.getAge());
+
+        Pet updatedPet = petRepository.save(existingPet);
+
+        // Owner bilgisi için UserDTO oluştur
+        User owner = existingPet.getOwner();
+        UserDTO ownerDTO = new UserDTO(owner.getId(), owner.getUsername(), owner.getEmail(), owner.getRole(), null);
+
+        // FeedingScheduleDTO oluştur
+        List<UpdateFeedingScheduleDTO> feedingSchedules = feedingScheduleRepository.findByPetsId(petId).stream()
+                .map(schedule -> new UpdateFeedingScheduleDTO( schedule.getBreakfastTime(), schedule.getLunchTime(), schedule.getDinnerTime()))
+                .collect(Collectors.toList());
+
+
+        // MedicationDTO oluştur
+        List<UpdateMedicationDTO> medications = medicationRepository.findAllByPetsId(petId).stream()
+                .map(medication -> new UpdateMedicationDTO( medication.getMedicationName(), medication.getStartDate(), medication.getEndDate(), medication.getDosage()))
+                .collect(Collectors.toList());
+
+        // VaccinationDTO oluştur
+        List<UpdateVaccinationDTO> vaccinations = vaccinationRepository.findAllByPetsId(petId).stream()
+                .map(vaccination -> new UpdateVaccinationDTO( vaccination.getVaccinationType(), vaccination.getVaccinationDate()))
+                .collect(Collectors.toList());
+
+
+        // VetAppointmentDTO oluştur
+        List<UpdateVetAppointmentDTO> vetAppointments = vetAppointmentRepository.findAllByPetId(petId).stream()
+                .map(appointment -> new UpdateVetAppointmentDTO( appointment.getVet().getUsername(), appointment.getAppointmentDate()))
+                .collect(Collectors.toList());
+
+
+        // SupplyDTO oluştur
+        List<UpdateSupplyDTO> supplies = supplyRepository.findAllByPetsId(petId).stream()
+                .map(supply -> new UpdateSupplyDTO( supply.getSupplyName(), supply.getStatus(), supply.getQuantity()))
+                .collect(Collectors.toList());
+
+
+        return new UpdatePetDTO(
+
+                updatedPet.getName(),
+                updatedPet.getType(),
+                updatedPet.getAge(),
+                feedingSchedules.isEmpty() ? null : feedingSchedules.get(0), // İlk FeedingSchedule
+                medications,
+                vaccinations,
+                vetAppointments,
+                supplies
+                 // Owner bilgisi
+        );
     }
 }
