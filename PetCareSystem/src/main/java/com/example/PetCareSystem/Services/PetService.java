@@ -90,6 +90,8 @@ public class PetService {
                 .collect(Collectors.toList());
     }
 
+
+
     public PetDTO addPet(int userId, Pet pet) {
         // Kullanıcı kontrolü
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));

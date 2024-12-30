@@ -10,19 +10,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/pets/{petId}/supplies")
+@RequestMapping("/supplies")
 public class SupplyController {
 
     @Autowired
     private SupplyService supplyService;
 
-    @PostMapping
+    @PostMapping("/pets/{petId}/add")
     public ResponseEntity<SupplyDTO> addSupply(@PathVariable int petId, @RequestBody Supply supply) {
         SupplyDTO savedSupply = supplyService.addSupply(petId, supply);
         return ResponseEntity.ok(savedSupply);
     }
 
-    @GetMapping
+    @GetMapping("/pets/{petId}/get")
     public ResponseEntity<List<SupplyDTO>> getSupplies(@PathVariable int petId) {
         List<SupplyDTO> supplies = supplyService.getSupplies(petId);
         return ResponseEntity.ok(supplies);

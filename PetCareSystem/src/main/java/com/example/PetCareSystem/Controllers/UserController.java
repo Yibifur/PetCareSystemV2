@@ -31,7 +31,7 @@ public class UserController {
     private PetService petService;
 
 
-    @GetMapping("/{userId}/pets")
+    @GetMapping("/{userId}")
     public ResponseEntity<UserDTO> getUserPets(@PathVariable int userId) {
         UserDTO userDTO = userService.getUserById(userId);
         return ResponseEntity.ok(userDTO);
@@ -40,6 +40,13 @@ public class UserController {
     public ResponseEntity<List<UserDTO>> getAllUSers(){
         List<UserDTO> users=userService.getAllUsers();
         return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/{petId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<PetDTO> getPetDetails(@PathVariable int petId) {
+        PetDTO petDTO = petService.getPetDetails(petId);
+        return ResponseEntity.ok(petDTO);
     }
     @PutMapping("/{userId}/pets/{petId}/update")
     public ResponseEntity<UpdatePetDTO> updatePet(@PathVariable int userId,@PathVariable int petId,@RequestBody UpdatePetDTO updatePetDTO) throws BadRequestException {
