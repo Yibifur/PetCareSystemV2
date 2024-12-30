@@ -24,7 +24,7 @@ public class VaccinationController {
     @Autowired
     private PetRepository petRepository;
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('USER') and isAuthenticated()")
     @PostMapping("/pets/{petId}/add")
     public ResponseEntity<VaccinationDTO> addVaccination(@PathVariable int petId, @RequestBody Vaccination vaccination, @AuthenticationPrincipal CustomPrincipal principal) {
         // Pet'i veritabanından bul
@@ -33,12 +33,12 @@ public class VaccinationController {
 
         // Owner ID ve Principal ID'yi kontrol et
         if (pet.getOwner().getId()!=(principal.getUserId())) {
-            throw new RuntimeException("You are not authorized to add medication to this pet.");
+            throw new RuntimeException("You are not authorized to add vaccination to this pet.");
         }
         VaccinationDTO savedVaccination = vaccinationService.addVaccination(petId, vaccination);
         return ResponseEntity.ok(savedVaccination);
     }
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('USER') and isAuthenticated()")
     @GetMapping("/pets/{petId}/get")
     public ResponseEntity<List<VaccinationDTO>> getVaccinations(@PathVariable int petId, @AuthenticationPrincipal CustomPrincipal principal) {
         Pet pet = petRepository.findById(petId)
@@ -46,7 +46,7 @@ public class VaccinationController {
 
         // Owner ID ve Principal ID'yi kontrol et
         if (pet.getOwner().getId()!=(principal.getUserId())) {
-            throw new RuntimeException("You are not authorized to add medication to this pet.");
+            throw new RuntimeException("You are not authorized to add vaccination to this pet.");
         }
         List<VaccinationDTO> vaccinations = vaccinationService.getVaccinations(petId);
         return ResponseEntity.ok(vaccinations);

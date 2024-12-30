@@ -25,7 +25,7 @@ public class MedicationController {
     @Autowired
     private PetRepository petRepository;
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('USER') and isAuthenticated()")
     @PostMapping("/pets/{petId}/add")
     public ResponseEntity<MedicationDTO> addMedication(
             @PathVariable int petId,
@@ -46,7 +46,7 @@ public class MedicationController {
         return ResponseEntity.ok(savedMedication);
     }
 
-
+    @PreAuthorize("hasRole('USER') and isAuthenticated()")
     @GetMapping( "/pets/{petId}/get")
     public ResponseEntity<List<MedicationDTO>> getMedications(@PathVariable int petId, @AuthenticationPrincipal CustomPrincipal principal) {
         Pet pet = petRepository.findById(petId)

@@ -20,7 +20,8 @@ public class FeedingScheduleController {
     private FeedingScheduleService feedingScheduleService;
     @Autowired
     private PetRepository petRepository;
-    @PreAuthorize("isAuthenticated()")
+
+    @PreAuthorize("hasRole('USER') and isAuthenticated()")
     @PostMapping("/pets/{petId}/add")
     public ResponseEntity<FeedingScheduleDTO> addFeedingSchedule(@PathVariable int petId, @RequestBody FeedingSchedule feedingSchedule, @AuthenticationPrincipal CustomPrincipal principal) {
         Pet pet = petRepository.findById(petId)
@@ -33,7 +34,8 @@ public class FeedingScheduleController {
         FeedingScheduleDTO savedSchedule = feedingScheduleService.addFeedingSchedule(petId, feedingSchedule);
         return ResponseEntity.ok(savedSchedule);
     }
-    @PreAuthorize("isAuthenticated()")
+
+    @PreAuthorize("hasRole('USER') and isAuthenticated()")
     @GetMapping("/pets/{petId}/get")
     public ResponseEntity<FeedingScheduleDTO> getFeedingSchedule(@PathVariable int petId, @AuthenticationPrincipal CustomPrincipal principal) {
         Pet pet = petRepository.findById(petId)
@@ -41,7 +43,7 @@ public class FeedingScheduleController {
 
         // Owner ID ve Principal ID'yi kontrol et
         if (pet.getOwner().getId()!=(principal.getUserId())) {
-            throw new RuntimeException("You are not authorized to add medication to this pet.");
+            throw new RuntimeException("You are not authorized to add feeding schedule to this pet.");
         }
         FeedingScheduleDTO feedingSchedule = feedingScheduleService.getFeedingScheduleByPetId(petId);
         return ResponseEntity.ok(feedingSchedule);

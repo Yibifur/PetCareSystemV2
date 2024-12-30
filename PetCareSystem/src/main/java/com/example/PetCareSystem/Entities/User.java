@@ -30,15 +30,6 @@ public class User implements UserDetails {
 
     private String passwordHash;
 
-    public User(int id, String username, String passwordHash, UserRole role) {
-        this.id = id;
-        this.username = username;
-        this.passwordHash = passwordHash;
-        this.role = role;
-    }
-
-    public User() {
-    }
 
     @Enumerated(EnumType.STRING) // Enum değerini string olarak saklar
     private UserRole role; // Kullanıcı rolü

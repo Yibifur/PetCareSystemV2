@@ -17,8 +17,6 @@ public class VetAppointment {
     @JoinColumn(name = "vet_id", nullable = false)
     private User vet;
 
-
-
     @ManyToOne
     @JoinColumn(name = "pet_id", nullable = false)
     private Pet pet; // Pet referansı eklendi
