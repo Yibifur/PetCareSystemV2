@@ -1,6 +1,7 @@
 package com.example.PetCareSystem.Controllers;
 
 import com.example.PetCareSystem.DTO.CreateDTOs.CreatePetDTO;
+import com.example.PetCareSystem.DTO.GetPetDTO;
 import com.example.PetCareSystem.DTO.PetDTO;
 import com.example.PetCareSystem.DTO.UpdateDTOs.UpdatePetDTO;
 import com.example.PetCareSystem.DTO.UserDTO;
@@ -42,12 +43,23 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/{petId}")
+    @GetMapping("/{userId}/pets")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<PetDTO> getPetDetails(@PathVariable int petId) {
-        PetDTO petDTO = petService.getPetDetails(petId);
-        return ResponseEntity.ok(petDTO);
+    public ResponseEntity<List<GetPetDTO>> getPetsByUserId(
+            @PathVariable int userId,
+            @AuthenticationPrincipal CustomPrincipal principal) throws BadRequestException {
+
+        // Kullanıcının kimliğini doğrula
+        if (userId != principal.getUserId()) {
+            throw new BadRequestException("You are not authorized to view this user's pets.");
+        }
+
+        // Kullanıcının pet detaylarını getir
+        List<GetPetDTO> petDetails = petService.getPetsByUserId(userId);
+
+        return ResponseEntity.ok(petDetails);
     }
+
     @PutMapping("/{userId}/pets/{petId}/update")
     public ResponseEntity<UpdatePetDTO> updatePet(@PathVariable int userId,@PathVariable int petId,@RequestBody UpdatePetDTO updatePetDTO) throws BadRequestException {
         UserDTO userDTO = userService.getUserById(userId);
@@ -62,11 +74,11 @@ public class UserController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{userId}/pets/add")
-    public ResponseEntity<PetDTO> addPet(@PathVariable int userId, @RequestBody Pet pet,@AuthenticationPrincipal CustomPrincipal principal) {
+    public ResponseEntity<GetPetDTO> addPet(@PathVariable int userId, @RequestBody Pet pet,@AuthenticationPrincipal CustomPrincipal principal) {
         if (userId!=(principal.getUserId())) {
             throw new AccessDeniedException("You are not authorized to access this resource");
         }
-        PetDTO savedPet = petService.addPet(userId, pet);
+        GetPetDTO savedPet = petService.addPet(userId, pet);
         return ResponseEntity.ok(savedPet);
     }
     @DeleteMapping("/{userId}/pets/{petId}/delete")

@@ -4,6 +4,7 @@ import com.example.PetCareSystem.DTO.*;
 import com.example.PetCareSystem.DTO.UpdateDTOs.*;
 import com.example.PetCareSystem.Entities.*;
 import com.example.PetCareSystem.Repositories.*;
+import org.apache.coyote.BadRequestException;
 import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -90,9 +91,28 @@ public class PetService {
                 .collect(Collectors.toList());
     }
 
+    public List<GetPetDTO> getPetsByUserId(int userId) throws BadRequestException {
+        // Kullanıcı ID'sine ait tüm petleri al
+        List<Pet> pets = petRepository.findAllByOwnerId(userId);
+
+        // Eğer pet bulunamazsa hata fırlat
+        if (pets.isEmpty()) {
+            throw new BadRequestException("No pets found for user ID: " + userId);
+        }
+
+        // Petleri GetPetDTO nesnelerine dönüştür ve döndür
+        return pets.stream().map(pet -> new GetPetDTO(
+                pet.getId(),
+                pet.getName(),
+                pet.getType(),
+                pet.getAge()
+        )).toList();
+    }
 
 
-    public PetDTO addPet(int userId, Pet pet) {
+
+
+    public GetPetDTO addPet(int userId, Pet pet) {
         // Kullanıcı kontrolü
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -106,18 +126,11 @@ public class PetService {
         UserDTO ownerDTO = new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), null);
 
         // PetDTO oluştur ve döndür
-        return new PetDTO(
+        return new GetPetDTO(
                 savedPet.getId(),
                 savedPet.getName(),
                 savedPet.getType(),
-                savedPet.getAge(),
-                null, // FeedingScheduleDTO
-                null, // List<MedicationDTO>
-                null, // List<VaccinationDTO>
-                null, // List<VetAppointmentDTO>
-                null, // List<SupplyDTO>
-                ownerDTO // Owner bilgisi
-
+                savedPet.getAge()
         );
     }
 
