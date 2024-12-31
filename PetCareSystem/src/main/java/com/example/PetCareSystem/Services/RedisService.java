@@ -35,7 +35,24 @@ public class RedisService {
 
 
     }
+    public void removeSessionIfExists(String userId) {
+        // Redis'teki tüm session anahtarlarını al
+        Set<String> keys = redisTemplate.keys("*"); // Anahtarlar String olarak alınır
 
+        if (keys != null && !keys.isEmpty()) {
+            // Her bir anahtarı dolaşarak userId'yi kontrol et
+            for (String key : keys) {
+                // Redis'ten key'e karşılık gelen oturum verilerini al
+                Map<Object, Object> sessionData = redisTemplate.opsForHash().entries(key);
+
+                // Eğer oturumda userId eşleşiyorsa, bu anahtarı sil
+                if (sessionData != null && userId.equals(sessionData.get("userId"))) {
+                    redisTemplate.delete(key); // Anahtarı sil
+                    System.out.println("Session removed for user ID: " + userId + " (Key: " + key + ")");
+                }
+            }
+        }
+    }
     public Map<Object, Object> getSession(String sessionId) {
         // Redis'ten veriyi al
         return redisTemplate.opsForHash().entries(sessionId);

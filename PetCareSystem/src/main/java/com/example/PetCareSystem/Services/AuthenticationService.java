@@ -60,7 +60,8 @@ public class AuthenticationService {
 
             System.out.println("Encoded password in DB: " + user.getPasswordHash());
             System.out.println("Password matches: " + passwordEncoder.matches(request.getPassword(), user.getPasswordHash()));
-
+            // Eski oturumları kontrol edip sil
+            redisService.removeSessionIfExists(String.valueOf(user.getId()));
             // JWT token oluştur
             var jwtToken = jwtService.generateToken(user);
             System.out.println("JWT Token: " + jwtToken);
