@@ -7,6 +7,7 @@ import com.example.PetCareSystem.Security.JwtService;
 import com.example.PetCareSystem.auth.AuthenticationRequest;
 import com.example.PetCareSystem.auth.AuthenticationResponse;
 import com.example.PetCareSystem.auth.RegisterRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,7 +30,7 @@ public class AuthenticationService {
         this.redisService = redisService;
     }
 
-    public AuthenticationResponse register(RegisterRequest request) {
+    public String register(RegisterRequest request) {
         // Kullanıcıyı oluştur ve şifreyi şifrele
         var user = new User.Builder()
                 .username(request.getUsername())
@@ -39,16 +40,12 @@ public class AuthenticationService {
                 .build();
         userRepository.save(user);
 
-        // JWT token oluştur
-        var jwtToken = jwtService.generateToken(user);
+
 
         // Redis'te session kaydet
         //redisService.addSession(Integer.valueOf(String.valueOf(user.getId())), jwtToken);
 
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
-    }
+        return "Kullanıcı Kaydınız Gerçekleşmiştir";}
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         try {

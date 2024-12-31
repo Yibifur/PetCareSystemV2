@@ -4,6 +4,7 @@ import com.example.PetCareSystem.DTO.*;
 import com.example.PetCareSystem.DTO.UpdateDTOs.*;
 import com.example.PetCareSystem.Entities.*;
 import com.example.PetCareSystem.Repositories.*;
+import jakarta.transaction.Transactional;
 import org.apache.coyote.BadRequestException;
 import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -184,7 +185,21 @@ public class PetService {
         );
     }
 
+    @Transactional
     public void deletePet(int petId) {
+        // İlişkili verileri temizle
+        try{
+
+            petRepository.deleteVaccinationRelationships(petId);
+            petRepository.deleteSupplyRelationships(petId);
+            petRepository.deleteMedicationRelationships(petId);
+            petRepository.deleteFeedingScheduleRelationships(petId);
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Error deleting pet with ID: " + petId, e);
+        }
+
+
         // Pet'i sil
         petRepository.deleteById(petId);
     }
@@ -243,5 +258,43 @@ public class PetService {
                 supplies
                  // Owner bilgisi
         );
+
     }
+    public Pet findById(int petId){
+        return petRepository.findById(petId).orElseThrow(() -> new RuntimeException("Pet not found with id: "));
+    }
+    public UpdateSupplyDTO updateSupply(int petId, int supplyId, UpdateSupplyDTO updateSupplyDTO) throws BadRequestException {
+        // Pet ve Supply doğrulama işlemleri
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new BadRequestException("Pet not found with ID: " + petId));
+
+        Supply supply = supplyRepository.findById(supplyId)
+                .orElseThrow(() -> new BadRequestException("Supply not found with ID: " + supplyId));
+
+        // Supply'in ilgili Pet ile ilişkili olup olmadığını kontrol edin
+        if (!supply.getPets().contains(pet)) {
+            throw new RuntimeException("This supply does not belong to the specified pet.");
+        }
+
+        // Güncelleme işlemi (UpdateSupplyDTO'dan gelen veriler kullanılarak)
+        if (updateSupplyDTO.getSupplyName() != null) {
+            supply.setSupplyName(updateSupplyDTO.getSupplyName());
+        }
+        if (updateSupplyDTO.getStatus() != null) {
+            supply.setStatus(updateSupplyDTO.getStatus());
+        }
+        supply.setQuantity(updateSupplyDTO.getQuantity());
+
+        // Güncellenmiş supply'ı kaydet
+        Supply updatedSupply = supplyRepository.save(supply);
+
+        // UpdateSupplyDTO dönüştürme işlemi
+        return new UpdateSupplyDTO(
+                updatedSupply.getSupplyName(),
+                updatedSupply.getStatus(),
+                updatedSupply.getQuantity()
+        );
+    }
+
+
 }

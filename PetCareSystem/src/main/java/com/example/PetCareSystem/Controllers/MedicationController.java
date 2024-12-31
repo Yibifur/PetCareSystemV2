@@ -7,6 +7,7 @@ import com.example.PetCareSystem.Entities.Medication;
 import com.example.PetCareSystem.Entities.Pet;
 import com.example.PetCareSystem.Repositories.PetRepository;
 import com.example.PetCareSystem.Services.MedicationService;
+import com.example.PetCareSystem.Services.PetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,7 @@ public class MedicationController {
     @Autowired
     private MedicationService medicationService;
     @Autowired
-    private PetRepository petRepository;
+    private PetService petService;
 
     @PreAuthorize("hasRole('USER') and isAuthenticated()")
     @PostMapping("/pets/{petId}/add")
@@ -33,8 +34,8 @@ public class MedicationController {
             @AuthenticationPrincipal CustomPrincipal principal) {
 
         // Pet'i veritabanından bul
-        Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new RuntimeException("Pet not found with id: "));
+        Pet pet = petService.findById(petId);
+
 
         // Owner ID ve Principal ID'yi kontrol et
         if (pet.getOwner().getId()!=(principal.getUserId())) {
@@ -49,8 +50,8 @@ public class MedicationController {
     @PreAuthorize("hasRole('USER') and isAuthenticated()")
     @GetMapping( "/pets/{petId}/get")
     public ResponseEntity<List<MedicationDTO>> getMedications(@PathVariable int petId, @AuthenticationPrincipal CustomPrincipal principal) {
-        Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new RuntimeException("Pet not found with id: "));
+        Pet pet = petService.findById(petId);
+
 
         // Owner ID ve Principal ID'yi kontrol et
         if (pet.getOwner().getId()!=(principal.getUserId())) {
