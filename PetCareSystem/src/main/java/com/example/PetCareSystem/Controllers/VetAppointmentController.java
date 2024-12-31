@@ -11,6 +11,7 @@ import com.example.PetCareSystem.Services.VetAppointmentService;
 import com.example.PetCareSystem.Services.PetService;
 import com.example.PetCareSystem.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,45 +26,71 @@ public class VetAppointmentController {
     @Autowired
     private VetAppointmentService vetAppointmentService;
     @Autowired
-    private PetRepository petRepository;
+    private PetService petService;
 
     @PreAuthorize("hasRole('USER') and isAuthenticated()")
     @PostMapping("/{vetId}/pets/{petId}/addAppointment")
-    public ResponseEntity<VetAppointmentDTO> scheduleAppointment(
+    public ResponseEntity<?> scheduleAppointment(
             @PathVariable int vetId,
             @PathVariable int petId,
             @RequestBody VetAppointment appointment,
             @AuthenticationPrincipal CustomPrincipal principal) {
-        Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new RuntimeException("Pet not found with id: "));
+        try {
+            Pet pet = petService.findById(petId);
 
-        // Owner ID ve Principal ID'yi kontrol et
-        if (pet.getOwner().getId()!=(principal.getUserId())) {
-            throw new RuntimeException("You are not authorized to add Veterinarian Appointment to this pet.");
+            // Owner ID ve Principal ID'yi kontrol et
+            if (pet.getOwner().getId() != (principal.getUserId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You are not authorized to add a Veterinarian Appointment to this pet.");
+            }
+
+            VetAppointmentDTO savedAppointment = vetAppointmentService.scheduleAppointment(vetId, petId, appointment);
+            return ResponseEntity.ok(savedAppointment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
-        VetAppointmentDTO savedAppointment = vetAppointmentService.scheduleAppointment(vetId, petId, appointment);
-        return ResponseEntity.ok(savedAppointment);
     }
 
-    @GetMapping("/getAllAppointments")
-    public ResponseEntity<List<VetAppointmentDTO>> getAppointments(@PathVariable int petId) {
-        List<VetAppointmentDTO> appointments = vetAppointmentService.getAppointments(petId);
-        return ResponseEntity.ok(appointments);
+    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @GetMapping("/pets/{petId}/getAppointments")
+    public ResponseEntity<?> getAppointments(@PathVariable int petId, @AuthenticationPrincipal CustomPrincipal principal) {
+        try {
+            Pet pet = petService.findById(petId);
+            // Owner ID ve Principal ID'yi kontrol et
+            if (pet.getOwner().getId() != (principal.getUserId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("No appointments found for pet with ID: " + petId);
+            }
+            List<VetAppointmentDTO> appointments = vetAppointmentService.getAppointments(petId);
+            return ResponseEntity.ok(appointments);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error: Unable to fetch appointments for pet with ID: " + petId + ". Details: " + e.getMessage());
+        }
     }
+
     @PreAuthorize("hasRole('VET') and isAuthenticated()")
     @GetMapping("/{vetId}/appointments")
-    public ResponseEntity<List<GetVetAppointmentDTO>> getAppointmentsByVetId(
+    public ResponseEntity<?> getAppointmentsByVetId(
             @PathVariable int vetId,
             @AuthenticationPrincipal CustomPrincipal principal) {
-        // Oturum açmış kullanıcının ID'si ile vetId'yi karşılaştır
-        if (principal.getUserId() != vetId) {
-            throw new RuntimeException("You are not authorized to view these appointments.");
-        }
+        try {
+            // Oturum açmış kullanıcının ID'si ile vetId'yi karşılaştır
+            if (principal.getUserId() != vetId) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You are not authorized to view these appointments.");
+            }
 
-        // Servis çağrısı
-        List<GetVetAppointmentDTO> appointments = vetAppointmentService.getAppointmentsByVetId(vetId);
-        return ResponseEntity.ok(appointments);
+            // Servis çağrısı
+            List<GetVetAppointmentDTO> appointments = vetAppointmentService.getAppointmentsByVetId(vetId);
+            return ResponseEntity.ok(appointments);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
     }
+
 
 }
 

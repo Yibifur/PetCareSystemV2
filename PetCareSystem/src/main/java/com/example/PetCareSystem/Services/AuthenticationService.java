@@ -7,6 +7,7 @@ import com.example.PetCareSystem.Security.JwtService;
 import com.example.PetCareSystem.auth.AuthenticationRequest;
 import com.example.PetCareSystem.auth.AuthenticationResponse;
 import com.example.PetCareSystem.auth.RegisterRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,7 +31,7 @@ public class AuthenticationService {
         this.redisService = redisService;
     }
 
-    public String register(RegisterRequest request) {
+    public void register(RegisterRequest request) {
         // Kullanıcıyı oluştur ve şifreyi şifrele
         var user = new User.Builder()
                 .username(request.getUsername())
@@ -41,11 +42,7 @@ public class AuthenticationService {
         userRepository.save(user);
 
 
-
-        // Redis'te session kaydet
-        //redisService.addSession(Integer.valueOf(String.valueOf(user.getId())), jwtToken);
-
-        return "Kullanıcı Kaydınız Gerçekleşmiştir";}
+        }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         try {
@@ -80,13 +77,23 @@ public class AuthenticationService {
         }
     }
 
-    public void logout(String token) {
-        // Token'dan sessionId al
-        String userId = String.valueOf(jwtService.extractUserId(token));
+    public ResponseEntity<String> logout(String token) {
+        try {
+            // Extract sessionId from token
+            String userId = String.valueOf(jwtService.extractUserId(token));
 
-        // Redis'ten session sil
-        redisService.deleteSession(userId);
+            // Remove session from Redis
+            redisService.deleteSession(userId);
+
+            // Return success response
+            return ResponseEntity.ok("Logout successful.");
+        } catch (Exception e) {
+            // Return error response with meaningful message
+            String errorMessage = "An error occurred during logout: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+        }
     }
+
 }
 
 

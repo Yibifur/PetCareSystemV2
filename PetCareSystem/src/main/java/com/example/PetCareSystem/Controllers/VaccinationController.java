@@ -5,13 +5,16 @@ import com.example.PetCareSystem.Entities.CustomPrincipal;
 import com.example.PetCareSystem.Entities.Pet;
 import com.example.PetCareSystem.Entities.Vaccination;
 import com.example.PetCareSystem.Repositories.PetRepository;
+import com.example.PetCareSystem.Services.PetService;
 import com.example.PetCareSystem.Services.VaccinationService;
 import io.jsonwebtoken.impl.security.EdwardsCurve;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -22,34 +25,57 @@ public class VaccinationController {
     @Autowired
     private VaccinationService vaccinationService;
     @Autowired
-    private PetRepository petRepository;
+    private PetService petService;
 
     @PreAuthorize("hasRole('USER') and isAuthenticated()")
     @PostMapping("/pets/{petId}/add")
-    public ResponseEntity<VaccinationDTO> addVaccination(@PathVariable int petId, @RequestBody Vaccination vaccination, @AuthenticationPrincipal CustomPrincipal principal) {
-        // Pet'i veritabanından bul
-        Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new RuntimeException("Pet not found with id: "));
+    public ResponseEntity<?> addVaccination(
+            @PathVariable int petId,
+            @RequestBody Vaccination vaccination,
+            @AuthenticationPrincipal CustomPrincipal principal) {
+        try {
+            // Pet doğrulama
+            Pet pet = petService.findById(petId);
 
-        // Owner ID ve Principal ID'yi kontrol et
-        if (pet.getOwner().getId()!=(principal.getUserId())) {
-            throw new RuntimeException("You are not authorized to add vaccination to this pet.");
+            // Owner ID ve Principal ID'yi kontrol et
+            if (pet.getOwner().getId() != principal.getUserId()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You are not authorized to add vaccination to this pet.");
+            }
+
+            // Aşıyı ekle
+            VaccinationDTO savedVaccination = vaccinationService.addVaccination(petId, vaccination);
+            return ResponseEntity.ok(savedVaccination);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
-        VaccinationDTO savedVaccination = vaccinationService.addVaccination(petId, vaccination);
-        return ResponseEntity.ok(savedVaccination);
     }
+
     @PreAuthorize("hasRole('USER') and isAuthenticated()")
     @GetMapping("/pets/{petId}/get")
-    public ResponseEntity<List<VaccinationDTO>> getVaccinations(@PathVariable int petId, @AuthenticationPrincipal CustomPrincipal principal) {
-        Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new RuntimeException("Pet not found with id: "));
+    public ResponseEntity<?> getVaccinations(
+            @PathVariable int petId,
+            @AuthenticationPrincipal CustomPrincipal principal) {
+        try {
+            // Pet doğrulama
+            Pet pet = petService.findById(petId);
 
-        // Owner ID ve Principal ID'yi kontrol et
-        if (pet.getOwner().getId()!=(principal.getUserId())) {
-            throw new RuntimeException("You are not authorized to add vaccination to this pet.");
+            // Owner ID ve Principal ID'yi kontrol et
+            if (pet.getOwner().getId() != principal.getUserId()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You are not authorized to view vaccinations for this pet.");
+            }
+
+            // Aşıları getir
+            List<VaccinationDTO> vaccinations = vaccinationService.getVaccinations(petId);
+            return ResponseEntity.ok(vaccinations);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
-        List<VaccinationDTO> vaccinations = vaccinationService.getVaccinations(petId);
-        return ResponseEntity.ok(vaccinations);
     }
+
+
 }
 

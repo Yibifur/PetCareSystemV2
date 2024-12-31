@@ -9,6 +9,7 @@ import com.example.PetCareSystem.Repositories.PetRepository;
 import com.example.PetCareSystem.Services.MedicationService;
 import com.example.PetCareSystem.Services.PetService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,37 +29,50 @@ public class MedicationController {
 
     @PreAuthorize("hasRole('USER') and isAuthenticated()")
     @PostMapping("/pets/{petId}/add")
-    public ResponseEntity<MedicationDTO> addMedication(
+    public ResponseEntity<?> addMedication(
             @PathVariable int petId,
             @RequestBody Medication medication,
             @AuthenticationPrincipal CustomPrincipal principal) {
+        try {
+            // Pet'i veritabanından bul
+            Pet pet = petService.findById(petId);
 
-        // Pet'i veritabanından bul
-        Pet pet = petService.findById(petId);
+            // Owner ID ve Principal ID'yi kontrol et
+            if (pet.getOwner().getId() != (principal.getUserId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You are not authorized to add medication to this pet.");
+            }
 
-
-        // Owner ID ve Principal ID'yi kontrol et
-        if (pet.getOwner().getId()!=(principal.getUserId())) {
-            throw new RuntimeException("You are not authorized to add medication to this pet.");
+            // Eşleşme varsa medication ekle
+            MedicationDTO savedMedication = medicationService.addMedication(petId, medication);
+            return ResponseEntity.ok(savedMedication);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
-
-        // Eşleşme varsa medication ekle
-        MedicationDTO savedMedication = medicationService.addMedication(petId, medication);
-        return ResponseEntity.ok(savedMedication);
     }
 
     @PreAuthorize("hasRole('USER') and isAuthenticated()")
-    @GetMapping( "/pets/{petId}/get")
-    public ResponseEntity<List<MedicationDTO>> getMedications(@PathVariable int petId, @AuthenticationPrincipal CustomPrincipal principal) {
-        Pet pet = petService.findById(petId);
+    @GetMapping("/pets/{petId}/get")
+    public ResponseEntity<?> getMedications(@PathVariable int petId, @AuthenticationPrincipal CustomPrincipal principal) {
+        try {
+            // Pet'i veritabanından bul
+            Pet pet = petService.findById(petId);
 
+            // Owner ID ve Principal ID'yi kontrol et
+            if (pet.getOwner().getId() != (principal.getUserId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You are not authorized to view medications for this pet.");
+            }
 
-        // Owner ID ve Principal ID'yi kontrol et
-        if (pet.getOwner().getId()!=(principal.getUserId())) {
-            throw new RuntimeException("You are not authorized to add medication to this pet.");
+            // Medication listesi al
+            List<MedicationDTO> medications = medicationService.getMedications(petId);
+            return ResponseEntity.ok(medications);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
-        List<MedicationDTO> medications = medicationService.getMedications(petId);
-        return ResponseEntity.ok(medications);
     }
+
 }
 
