@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,9 +22,16 @@ public class PetController {
     @Autowired
     private PetService petService;
 
+    @GetMapping("/test")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> test(Authentication authentication) {
+        System.out.println("Principal: " + authentication.getPrincipal());
+        System.out.println("Authorities: " + authentication.getAuthorities());
+        return ResponseEntity.ok("Check logs for authorities.");
+    }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') and isAuthenticated()")
     public ResponseEntity<?> getAllPets() {
         try {
             List<PetDTO> pets = petService.getAllPets();
@@ -34,9 +43,10 @@ public class PetController {
     }
 
     @DeleteMapping("/{petId}/delete")
-    @PreAuthorize("hasRole('ADMIN') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') and isAuthenticated()")
     public ResponseEntity<?> deletePet(@PathVariable int petId) {
         try {
+            System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
             petService.deletePet(petId);
             return ResponseEntity.ok("Pet deleted successfully");
         } catch (RuntimeException e) {

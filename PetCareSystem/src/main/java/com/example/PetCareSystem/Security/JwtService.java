@@ -6,14 +6,18 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
@@ -31,13 +35,21 @@ public class JwtService {
         return usernameClaim;
     }
 
+    public List<GrantedAuthority> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        List<Map<String, String>> roles = claims.get("Role", List.class);
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.get("authority")))
+                .collect(Collectors.toList());
+    }
 
     // Token oluşturma (email'i subject olarak ekler)
     public String generateToken(User userDetails) {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", userDetails.getUsername());
-        claims.put("userID",userDetails.getId());// Username claim ekleniyor
+        claims.put("userID",userDetails.getId());
+        claims.put("Authorities", userDetails.getAuthorities());// Username claim ekleniyor
         return generateToken(claims, userDetails);
     }
 
