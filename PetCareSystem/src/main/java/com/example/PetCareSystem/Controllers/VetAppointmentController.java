@@ -28,7 +28,7 @@ public class VetAppointmentController {
     @Autowired
     private PetService petService;
 
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     @PostMapping("/{vetId}/pets/{petId}/addAppointment")
     public ResponseEntity<?> scheduleAppointment(
             @PathVariable int vetId,
@@ -52,7 +52,7 @@ public class VetAppointmentController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     @GetMapping("/pets/{petId}/getAppointments")
     public ResponseEntity<?> getAppointments(@PathVariable int petId, @AuthenticationPrincipal CustomPrincipal principal) {
         try {
@@ -70,7 +70,7 @@ public class VetAppointmentController {
         }
     }
 
-    @PreAuthorize("hasRole('VET') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_VET') and isAuthenticated()")
     @GetMapping("/{vetId}/appointments")
     public ResponseEntity<?> getAppointmentsByVetId(
             @PathVariable int vetId,

@@ -23,7 +23,7 @@ public class FeedingScheduleController {
     @Autowired
     private PetService petService;
 
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     @PostMapping("/pets/{petId}/add")
     public ResponseEntity<?> addFeedingSchedule(@PathVariable int petId, @RequestBody FeedingSchedule feedingSchedule, @AuthenticationPrincipal CustomPrincipal principal) {
         try {
@@ -43,7 +43,7 @@ public class FeedingScheduleController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     @GetMapping("/pets/{petId}/get")
     public ResponseEntity<?> getFeedingSchedule(@PathVariable int petId, @AuthenticationPrincipal CustomPrincipal principal) {
         try {

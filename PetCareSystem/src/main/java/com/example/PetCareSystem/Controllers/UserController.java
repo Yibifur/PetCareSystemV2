@@ -29,7 +29,7 @@ public class UserController {
     @Autowired
     private PetService petService;
 
-    @PreAuthorize("hasAuthority('ADMIN') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') and isAuthenticated()")
     @GetMapping("/{userId}")
     public ResponseEntity<?> getUser(@PathVariable int userId) {
         try {
@@ -47,7 +47,7 @@ public class UserController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') and isAuthenticated()")
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
         try {
@@ -70,7 +70,7 @@ public class UserController {
 
 
     @GetMapping("/{userId}/pets")
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     public ResponseEntity<List<GetPetDTO>> getPetsByUserId(
             @PathVariable int userId,
             @AuthenticationPrincipal CustomPrincipal principal) throws BadRequestException {
@@ -86,7 +86,7 @@ public class UserController {
         return ResponseEntity.ok(petDetails);
     }
     @GetMapping("{userId}/pets/{petId}")
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     public ResponseEntity<?> getPetDetails(@PathVariable int petId) {
         try {
             PetDTO petDTO = petService.getPetDetails(petId);
@@ -97,7 +97,7 @@ public class UserController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     @PutMapping("/{userId}/pets/{petId}/update")
     public ResponseEntity<UpdatePetDTO> updatePet(@PathVariable int userId,@PathVariable int petId,@RequestBody UpdatePetDTO updatePetDTO) throws BadRequestException {
         UserDTO userDTO = userService.getUserById(userId);
@@ -110,7 +110,7 @@ public class UserController {
         return ResponseEntity.ok(updatePetDTO);
     }
 
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     @PostMapping("/{userId}/pets/add")
     public ResponseEntity<GetPetDTO> addPet(@PathVariable int userId, @RequestBody Pet pet,@AuthenticationPrincipal CustomPrincipal principal) {
         if (userId!=(principal.getUserId())) {
@@ -120,7 +120,7 @@ public class UserController {
         return ResponseEntity.ok(savedPet);
     }
     @DeleteMapping("/{userId}/pets/{petId}/delete")
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     public ResponseEntity<String> deletePet(@PathVariable int petId,@PathVariable int userId,@AuthenticationPrincipal CustomPrincipal principal) {
         if (userId!=(principal.getUserId())) {
             throw new AccessDeniedException("You are not authorized to access this resource");

@@ -27,7 +27,7 @@ public class MedicationController {
     @Autowired
     private PetService petService;
 
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     @PostMapping("/pets/{petId}/add")
     public ResponseEntity<?> addMedication(
             @PathVariable int petId,
@@ -52,7 +52,7 @@ public class MedicationController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     @GetMapping("/pets/{petId}/get")
     public ResponseEntity<?> getMedications(@PathVariable int petId, @AuthenticationPrincipal CustomPrincipal principal) {
         try {

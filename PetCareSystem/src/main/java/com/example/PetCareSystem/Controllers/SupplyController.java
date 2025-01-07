@@ -35,7 +35,7 @@ public class SupplyController {
     private PetService petService;
 
 
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     @PostMapping("/pets/{petId}/add")
     public ResponseEntity<?> addSupply(@PathVariable int petId, @RequestBody Supply supply, @AuthenticationPrincipal CustomPrincipal principal) {
         try {
@@ -51,7 +51,7 @@ public class SupplyController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     @GetMapping("/pets/{petId}/get")
     public ResponseEntity<?> getSupplies(@PathVariable int petId, @AuthenticationPrincipal CustomPrincipal principal) {
         try {
@@ -67,7 +67,7 @@ public class SupplyController {
         }
     }
 
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     @PutMapping("/pets/{petId}/update/{supplyId}")
     public ResponseEntity<?> updateSupply(
             @PathVariable int petId,
@@ -113,7 +113,7 @@ public class SupplyController {
     }
 
 
-    @PreAuthorize("hasRole('USER') and isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') and isAuthenticated()")
     @DeleteMapping("/pets/{petId}/delete/{supplyId}")
     public ResponseEntity<?> deleteSupply(
             @PathVariable int petId,

@@ -12,10 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,21 +34,38 @@ public class JwtService {
 
     public List<GrantedAuthority> extractRoles(String token) {
         Claims claims = extractAllClaims(token);
-        List<Map<String, String>> roles = claims.get("Role", List.class);
+        List<?> roles = claims.get("Authorities", List.class); // Listeyi genel türde okuyun
+
+        if (roles == null) {
+            return List.of(); // Roller yoksa boş bir liste döndür
+        }
+
+        // LinkedHashMap'i SimpleGrantedAuthority'ye dönüştür
         return roles.stream()
-                .map(role -> new SimpleGrantedAuthority(role.get("authority")))
+                .map(role -> {
+                    if (role instanceof LinkedHashMap) {
+                        return new SimpleGrantedAuthority((String) ((LinkedHashMap<?, ?>) role).get("authority"));
+                    }
+                    return new SimpleGrantedAuthority(role.toString()); // Eğer String formatındaysa direkt al
+                })
                 .collect(Collectors.toList());
     }
 
+
+
+
     // Token oluşturma (email'i subject olarak ekler)
     public String generateToken(User userDetails) {
-
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", userDetails.getUsername());
-        claims.put("userID",userDetails.getId());
-        claims.put("Authorities", userDetails.getAuthorities());// Username claim ekleniyor
+        claims.put("userID", userDetails.getId());
+        claims.put("Authorities", userDetails.getAuthorities().stream()
+                .map(authority -> Map.of("authority", authority.getAuthority())) // LinkedHashMap oluştur
+                .toList());
         return generateToken(claims, userDetails);
     }
+
+
 
     public String generateToken(Map<String, Object> extraClaims, User userDetails) {
         return Jwts.builder()
